@@ -1,0 +1,42 @@
+
+COMMENT = {"%" ~ (&!NEWLINE ~ ANY)* ~ NEWLINE}
+WHITESPACE = _{" " | "\t" | "\n" | "\r"}
+
+name = { ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+rule_separator = {"::=" | ":=="}
+regex_rule_separator = {"::-" | ":::"}
+separator = {rule_separator | regex_rule_separator}
+
+star = {"*"}
+plus = {"+"}
+
+non_terminal = {"<" ~ name ~ ">"}
+
+token = {(&!separator ~ &!non_terminal ~ &!"|" ~ ASCII)+}
+
+pattern = {(token | (non_terminal ~ star?) ~ &!separator )*}
+
+expansion = {pattern ~ ( "|" ~ pattern )* }
+
+syntax_rule = {non_terminal ~ rule_separator ~  expansion }
+
+
+terminal = {(&!"[" ~ &!"]" ~ &!"-" ~ ASCII)+}
+
+regex_terminal = {"[" ~ terminal ~ ("-" ~ terminal)* ~ "]"}
+
+regex_pattern = {((regex_terminal | non_terminal) ~ &!separator )+}
+
+regex_or = {"(" ~ regex_pattern ~ ("|" ~ regex_pattern)+ ~ ")"}
+
+regex_subexpansion = {((regex_pattern | regex_or) ~ (star | plus)? )+ }
+regex_expansion = {regex_subexpansion ~ ( "|" ~ regex_subexpansion)* }
+
+
+regex_rule = {non_terminal ~ regex_rule_separator ~ regex_expansion }
+
+rule = {syntax_rule | regex_rule}
+
+file = {(rule | COMMENT)* ~ EOI}
+
