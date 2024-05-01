@@ -1,6 +1,6 @@
 
-COMMENT = {"%" ~ (&!NEWLINE ~ ANY)* ~ NEWLINE}
-WHITESPACE = _{" " | "\t" | "\n" | "\r"}
+comment = {NEWLINE | ("%" ~ (&!NEWLINE ~ ANY)* ~ (NEWLINE | &EOI )) }
+WHITESPACE = _{" " | "\t" }
 
 name = { ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 
@@ -10,33 +10,40 @@ separator = {rule_separator | regex_rule_separator}
 
 star = {"*"}
 plus = {"+"}
+not = {"^"}
+dot = {"."}
+dash = {"-"}
+or = {"|"}
 
 non_terminal = {"<" ~ name ~ ">"}
 
-token = {(&!separator ~ &!non_terminal ~ &!"|" ~ ASCII)+}
+token = @{ (&!NEWLINE ~ &!separator ~ &!non_terminal ~ &!" " ~ &!or ~ ASCII)+}
 
 pattern = {(token | (non_terminal ~ star?) ~ &!separator )*}
 
-expansion = {pattern ~ ( "|" ~ pattern )* }
+expansion = {pattern ~ ( or ~ NEWLINE? ~ pattern ~ NEWLINE? )* }
 
 syntax_rule = {non_terminal ~ rule_separator ~  expansion }
 
 
-terminal = {(&!"[" ~ &!"]" ~ &!"-" ~ ASCII)+}
+// expressions between [], they represent a single character, a sequence of them
+// is to be understood as a disjunction, additionnaly must be taken into account
+// the escape '\' character and ranges: char1-char2
+special_char = {"\\" ~ ASCII_DIGIT+}
+regex_char_inner = {&!not ~ &!"[" ~ &!"]" ~ ("\\\\" | "\\n" | special_char ~ (dash ~ special_char)? | ASCII) }
+regex_single_char = {"[" ~ not? ~ regex_char_inner+ ~ "]"}
 
-regex_terminal = {"[" ~ terminal ~ ("-" ~ terminal)* ~ "]"}
+regex_expression = { regex_single_char ~ (star | plus)? | dot}
 
-regex_pattern = {((regex_terminal | non_terminal) ~ &!separator )+}
+regex_pattern = {regex_expression ~ regex_pattern* | non_terminal ~ (star | plus)? ~ regex_pattern* }
 
-regex_or = {"(" ~ regex_pattern ~ ("|" ~ regex_pattern)+ ~ ")"}
+regex_expansion = {"(" ~ regex_expansion ~ ")" ~ (star | plus)? ~ regex_expansion* | regex_pattern ~ (or ~ regex_pattern)+ | regex_pattern }
 
-regex_subexpansion = {((regex_pattern | regex_or) ~ (star | plus)? )+ }
-regex_expansion = {regex_subexpansion ~ ( "|" ~ regex_subexpansion)* }
+//| "(" ~ regex_expansion* ~ ")" ~ regex_expansion* | "(" ~ regex_expansion ~ (or ~ regex_expansion)+ ~ ")" }
 
-
-regex_rule = {non_terminal ~ regex_rule_separator ~ regex_expansion }
+regex_rule = {non_terminal ~ regex_rule_separator ~  ( non_terminal ~ (or ~ non_terminal)+ | regex_expansion ) }
 
 rule = {syntax_rule | regex_rule}
 
-file = {(rule | COMMENT)* ~ EOI}
+file = {(rule | comment)* ~ EOI}
 
