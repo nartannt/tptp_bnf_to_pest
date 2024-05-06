@@ -13,6 +13,8 @@ plus = {"+"}
 not = {"^"}
 dot = {"."}
 dash = {"-"}
+lparen = {"("}
+rparen = {")"}
 or = {"|"}
 
 non_terminal = {"<" ~ name ~ ">"}
@@ -30,18 +32,18 @@ syntax_rule = {non_terminal ~ rule_separator ~  expansion }
 // is to be understood as a disjunction, additionnaly must be taken into account
 // the escape '\' character and ranges: char1-char2
 special_char = {"\\" ~ ASCII_DIGIT+}
-regex_char_inner = {&!not ~ &!"[" ~ &!"]" ~ ("\\\\" | "\\n" | special_char ~ (dash ~ special_char)? | ASCII) }
-regex_single_char = {"[" ~ not? ~ regex_char_inner+ ~ "]"}
+regex_chars_inner = {&!not ~ &!"[" ~ &!"]" ~ ("\\\\" | "\\n" | special_char ~ (dash ~ special_char)? | ASCII) }
+regex_chars = {"[" ~ not? ~ regex_chars_inner+ ~ "]"}
 
-regex_expression = { regex_single_char ~ (star | plus)? | dot}
+regex_expression = { regex_chars ~ (star | plus)? | dot}
 
 regex_pattern = {regex_expression ~ regex_pattern* | non_terminal ~ (star | plus)? ~ regex_pattern* }
 
-regex_expansion = {"(" ~ regex_expansion ~ ")" ~ (star | plus)? ~ regex_expansion* | regex_pattern ~ (or ~ regex_pattern)+ | regex_pattern }
+regex_expansion = {non_terminal ~ (or ~ non_terminal)+ | lparen ~ regex_expansion ~ rparen ~ (star | plus)? ~ regex_expansion* | regex_pattern ~ (or ~ regex_pattern)+ | regex_pattern }
 
 //| "(" ~ regex_expansion* ~ ")" ~ regex_expansion* | "(" ~ regex_expansion ~ (or ~ regex_expansion)+ ~ ")" }
 
-regex_rule = {non_terminal ~ regex_rule_separator ~  ( non_terminal ~ (or ~ non_terminal)+ | regex_expansion ) }
+regex_rule = {non_terminal ~ regex_rule_separator ~  regex_expansion }
 
 rule = {syntax_rule | regex_rule}
 
