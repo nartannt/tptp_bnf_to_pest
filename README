@@ -4,6 +4,7 @@ This project aims to generate a .pest file from the official TPTP bnf specificat
 It directly prints out the pest grammar. To use it change the filename in the main.rs file to wherever your bnf file is stored.
 
 A handful of caveats:
+   - The program completely ignores semantic rules
    - I have been unable to find a precise semantic of grammar, and relied on guesswork for some of the specifics
    - There are likely a couple of bugs I haven't caught, the grammar I wrote is not very robust
    - Additionnal modifications must be made to the generated pest file
