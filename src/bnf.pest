@@ -4,9 +4,12 @@ WHITESPACE = _{" " | "\t" }
 
 name = { ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 
-rule_separator = {"::=" | ":=="}
-regex_rule_separator = {"::-" | ":::"}
-separator = {rule_separator | regex_rule_separator}
+rule_separator = {"::=" }
+// this one will be ignored because the semantic rules seem useless
+semantic_rule_separator = {":=="}
+regex_rule_separator = {"::-"}
+char_class_rule_separator = {":::"}
+separator = {rule_separator | regex_rule_separator | char_class_rule_separator | semantic_rule_separator}
 
 star = {"*"}
 plus = {"+"}
@@ -19,33 +22,52 @@ or = {"|"}
 
 non_terminal = {"<" ~ name ~ ">"}
 
+non_terminal_reg = {non_terminal ~ (star | plus)?}
+
 token = @{ (&!NEWLINE ~ &!separator ~ &!non_terminal ~ &!" " ~ &!or ~ ASCII)+}
 
 pattern = {(token | (non_terminal ~ star?) ~ &!separator )*}
 
 expansion = {pattern ~ ( or ~ NEWLINE? ~ pattern ~ NEWLINE? )* }
 
-syntax_rule = {non_terminal ~ rule_separator ~  expansion }
+syntax_rule = {non_terminal ~ rule_separator ~  expansion}
+semantic_rule = {non_terminal ~ semantic_rule_separator ~  expansion }
 
 
 // expressions between [], they represent a single character, a sequence of them
 // is to be understood as a disjunction, additionnaly must be taken into account
 // the escape '\' character and ranges: char1-char2
-special_char = {"\\" ~ ASCII_DIGIT+}
-regex_chars_inner = {&!not ~ &!"[" ~ &!"]" ~ ("\\\\" | "\\n" | special_char ~ (dash ~ special_char)? | ASCII) }
-regex_chars = {"[" ~ not? ~ regex_chars_inner+ ~ "]"}
+regex_chars_inner = {&!not ~ &!"[" ~ &!"]" ~ ("\\\\" | "\\n" | ASCII) }
+regex_chars = {"[" ~ not? ~ (chars_range | regex_chars_inner)+ ~ "]"}
 
 regex_expression = { regex_chars ~ (star | plus)? | dot}
 
-regex_pattern = {regex_expression ~ regex_pattern* | non_terminal ~ (star | plus)? ~ regex_pattern* }
+regex_pattern = {regex_expression ~ regex_pattern* | non_terminal_reg ~ regex_pattern* }
 
-regex_expansion = {non_terminal ~ (or ~ non_terminal)+ | lparen ~ regex_expansion ~ rparen ~ (star | plus)? ~ regex_expansion* | regex_pattern ~ (or ~ regex_pattern)+ | regex_pattern }
+regex_bracketed_expansion = {lparen ~ regex_expansion ~ rparen ~ (star | plus)?}
 
-//| "(" ~ regex_expansion* ~ ")" ~ regex_expansion* | "(" ~ regex_expansion ~ (or ~ regex_expansion)+ ~ ")" }
+regex_expansion = {non_terminal ~ (or ~ non_terminal)+ | regex_bracketed_expansion ~ regex_expansion* | regex_pattern ~ (or ~ regex_pattern)* }
 
-regex_rule = {non_terminal ~ regex_rule_separator ~  regex_expansion }
+regex_rule = {non_terminal ~ regex_rule_separator ~ regex_expansion }
 
-rule = {syntax_rule | regex_rule}
+special_chars = {"\\" ~ ASCII_DIGIT+}
+range_delimiter_chars = {special_chars | &!dash ~ &!"\\" ~ &!not ~ &!"[" ~ &!"]" ~ ASCII}
+
+chars_range = {(special_chars | range_delimiter_chars) ~ dash ~ (special_chars | range_delimiter_chars)} 
+
+class_chars = {"[" ~ not? ~ (chars_range | regex_chars_inner)+ ~ "]"}
+
+class_expression = { class_chars ~ (star | plus)? | dot}
+
+class_pattern = {class_expression ~ class_pattern* | non_terminal_reg ~ class_pattern* }
+
+class_bracketed_expansion = {lparen ~ (class_expansion ~ (or ~ class_expansion)* ) ~ rparen ~ (star | plus)?}
+
+class_expansion = {non_terminal ~ (or ~ non_terminal)+ | class_bracketed_expansion ~ class_expansion* | class_pattern ~ (or ~ class_pattern)* }
+
+char_class_rule = {non_terminal ~ char_class_rule_separator ~  class_expansion }
+
+rule = {syntax_rule | regex_rule | char_class_rule | semantic_rule}
 
 file = {(rule | comment)* ~ EOI}
 

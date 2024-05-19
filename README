@@ -1,0 +1,23 @@
+
+This project aims to generate a .pest file from the official TPTP bnf specifications
+
+It directly prints out the pest grammar. To use it change the filename in the main.rs file to wherever your bnf file is stored.
+
+A handful of caveats:
+   - I have been unable to find a precise semantic of grammar, and have consequently relied on educated guesswork
+   - There are likely a couple of bugs I haven't caught
+   - Additionnal modifications must be made to the generated pest file
+      * remove the "null" rule and replace all instances of "null" with the question mark and appropriate parenthesing
+        haven't found a way to work around this cleanly (maybe instead have a null = {&ANY} rule?)
+      * replace all oct ascii values with hex ascii values :
+          do_char = { ( '\x20'..'\x21' | '\x23'..'\x5B' | '\x5D'..'\x7E' | ( "\\" ) ~ ( "\"" | "\\" ) ) }
+          sq_char = { ( '\x20'..'\x26' | '\x28'..'\x5B' | '\x5D'..'\x7E' | ( "\\" ) ~ ( "'" | "\\" ) ) }
+       automisable without too much work but can't be bothered
+      * fix all left-recursive rules
+        possibly automisable but would take more effort than it's worth
+      * fix non-terminating rules (exactly not_star_slash)
+        don't think this can be automised
+
+With this in mind, the recommended use of this project is to generate the pest file using this code and then manually modify it.
+
+The tptp.pest file has been generated and subsequently modified by hand, it successfully parsed COM001_10.

@@ -1,0 +1,523 @@
+TPTP_file = { TPTP_input * }
+
+TPTP_input = { annotated_formula | include }
+
+annotated_formula = { thf_annotated | tff_annotated | tcf_annotated | fof_annotated | cnf_annotated | tpi_annotated }
+
+tpi_annotated = { "tpi(" ~ name ~ "," ~ formula_role ~ "," ~ tpi_formula ~ annotations ~ ")." }
+
+tpi_formula = { fof_formula }
+
+thf_annotated = { "thf(" ~ name ~ "," ~ formula_role ~ "," ~ thf_formula ~ annotations ~ ")." }
+
+tff_annotated = { "tff(" ~ name ~ "," ~ formula_role ~ "," ~ tff_formula ~ annotations ~ ")." }
+
+tcf_annotated = { "tcf(" ~ name ~ "," ~ formula_role ~ "," ~ tcf_formula ~ annotations ~ ")." }
+
+fof_annotated = { "fof(" ~ name ~ "," ~ formula_role ~ "," ~ fof_formula ~ annotations ~ ")." }
+
+cnf_annotated = { "cnf(" ~ name ~ "," ~ formula_role ~ "," ~ cnf_formula ~ annotations ~ ")." }
+
+annotations = { ("," ~ source ~ optional_info)?}
+
+formula_role = { lower_word | lower_word ~ "-" ~ general_term }
+
+thf_formula = { thf_logic_formula | thf_atom_typing | thf_subtype }
+
+thf_logic_formula = { thf_unitary_formula | thf_unary_formula | thf_binary_formula | thf_defined_infix | thf_definition | thf_sequent }
+
+thf_binary_formula = { thf_binary_nonassoc | thf_binary_assoc | thf_binary_type }
+
+thf_binary_nonassoc = { thf_unit_formula ~ nonassoc_connective ~ thf_unit_formula }
+
+thf_binary_assoc = { thf_or_formula | thf_and_formula | thf_apply_formula }
+
+thf_or_formula = { thf_unit_formula ~ (vline ~ thf_unit_formula)+ }
+
+thf_and_formula = { thf_unit_formula ~ ("&" ~ thf_unit_formula)+ }
+
+thf_apply_formula = { thf_unit_formula ~ ("@" ~ thf_unit_formula)+ }
+
+thf_unit_formula = { thf_unitary_formula | thf_unary_formula | thf_defined_infix }
+
+thf_preunit_formula = { thf_unitary_formula | thf_prefix_unary }
+
+thf_unitary_formula = { thf_quantified_formula | thf_atomic_formula | variable | "(" ~ thf_logic_formula ~ ")" }
+
+thf_quantified_formula = { thf_quantification ~ thf_unit_formula }
+
+thf_quantification = { thf_quantifier ~ "[" ~ thf_variable_list ~ "]" ~ ":" }
+
+thf_variable_list = { thf_typed_variable | thf_typed_variable ~ "," ~ thf_variable_list }
+
+thf_typed_variable = { variable ~ ":" ~ thf_top_level_type }
+
+thf_unary_formula = { thf_prefix_unary | thf_infix_unary }
+
+thf_prefix_unary = { thf_unary_connective ~ thf_preunit_formula }
+
+thf_infix_unary = { "(" ~ thf_unitary_term ~ infix_inequality ~ thf_unitary_term ~ ")" }
+
+thf_atomic_formula = { thf_plain_atomic | thf_defined_atomic | thf_system_atomic | thf_fof_function }
+
+thf_plain_atomic = { constant | thf_tuple }
+
+thf_defined_atomic = { defined_constant | thf_defined_term | "(" ~ thf_conn_term ~ ")" | nhf_long_connective | thf_let }
+
+thf_defined_term = { defined_term | th1_defined_term }
+
+thf_defined_infix = { "(" ~ thf_unitary_term ~ defined_infix_pred ~ thf_unitary_term ~ ")" }
+
+thf_system_atomic = { system_constant }
+
+thf_let = { "$let(" ~ thf_let_types ~ "," ~ thf_let_defns ~ "," ~ thf_logic_formula ~ ")" }
+
+thf_let_types = { thf_atom_typing | "[" ~ thf_atom_typing_list ~ "]" }
+
+thf_atom_typing_list = { thf_atom_typing | thf_atom_typing ~ "," ~ thf_atom_typing_list }
+
+thf_let_defns = { thf_let_defn | "[" ~ thf_let_defn_list ~ "]" }
+
+thf_let_defn = { thf_logic_formula ~ assignment ~ thf_logic_formula }
+
+thf_let_defn_list = { thf_let_defn | thf_let_defn ~ "," ~ thf_let_defn_list }
+
+thf_unitary_term = { thf_atomic_formula | variable | "(" ~ thf_logic_formula ~ ")" }
+
+thf_conn_term = { nonassoc_connective | assoc_connective | infix_equality | infix_inequality | thf_unary_connective }
+
+thf_tuple = { "[]" | "[" ~ thf_formula_list ~ "]" }
+
+thf_fof_function = { functor ~ "(" ~ thf_arguments ~ ")" | defined_functor ~ "(" ~ thf_arguments ~ ")" | system_functor ~ "(" ~ thf_arguments ~ ")" }
+
+thf_arguments = { thf_formula_list }
+
+thf_formula_list = { thf_logic_formula | thf_logic_formula ~ "," ~ thf_formula_list }
+
+thf_atom_typing = { untyped_atom ~ ":" ~ thf_top_level_type | "(" ~ thf_atom_typing ~ ")" }
+
+thf_top_level_type = { thf_unitary_type | thf_mapping_type | thf_apply_type }
+
+thf_unitary_type = { thf_unitary_formula }
+
+thf_apply_type = { thf_apply_formula }
+
+thf_binary_type = { thf_mapping_type | thf_xprod_type | thf_union_type }
+
+thf_mapping_type = { thf_unitary_type ~ arrow ~ thf_unitary_type | thf_unitary_type ~ arrow ~ thf_mapping_type }
+
+thf_xprod_type = { thf_unitary_type ~ (star ~ thf_unitary_type)+ }
+
+thf_union_type = { thf_unitary_type ~ (plus ~ thf_unitary_type)+ }
+
+thf_subtype = { untyped_atom ~ subtype_sign ~ atom }
+
+thf_definition = { thf_atomic_formula ~ identical ~ thf_logic_formula }
+
+thf_sequent = { thf_tuple ~ gentzen_arrow ~ thf_tuple }
+
+tff_formula = { tff_logic_formula | tff_atom_typing | tff_subtype }
+
+tff_logic_formula = { tff_unitary_formula | tff_unary_formula | tff_binary_formula | tff_defined_infix | txf_definition | txf_sequent }
+
+tff_binary_formula = { tff_binary_nonassoc | tff_binary_assoc }
+
+tff_binary_nonassoc = { tff_unit_formula ~ nonassoc_connective ~ tff_unit_formula }
+
+tff_binary_assoc = { tff_or_formula | tff_and_formula }
+
+tff_or_formula = { tff_unit_formula ~ (vline ~ tff_unit_formula)+ }
+
+tff_and_formula = { tff_unit_formula ~ ("&" ~ tff_unit_formula)+ }
+
+tff_unit_formula = { tff_unitary_formula | tff_unary_formula | tff_defined_infix }
+
+tff_preunit_formula = { tff_unitary_formula | tff_prefix_unary }
+
+tff_unitary_formula = { tff_quantified_formula | tff_atomic_formula | txf_unitary_formula | "(" ~ tff_logic_formula ~ ")" }
+
+txf_unitary_formula = { variable }
+
+tff_quantified_formula = { fof_quantifier ~ "[" ~ tff_variable_list ~ "]" ~ ":" ~ tff_unit_formula }
+
+tff_variable_list = { tff_variable | tff_variable ~ "," ~ tff_variable_list }
+
+tff_variable = { tff_typed_variable | variable }
+
+tff_typed_variable = { variable ~ ":" ~ tff_atomic_type }
+
+tff_unary_formula = { tff_prefix_unary | tff_infix_unary }
+
+tff_prefix_unary = { tff_unary_connective ~ tff_preunit_formula }
+
+tff_infix_unary = { "(" ~ tff_unitary_term ~ infix_inequality ~ tff_unitary_term ~ ")" }
+
+tff_atomic_formula = { tff_plain_atomic | tff_defined_atomic | tff_system_atomic }
+
+tff_plain_atomic = { constant | functor ~ "(" ~ tff_arguments ~ ")" }
+
+tff_defined_atomic = { tff_defined_plain }
+
+tff_defined_plain = { defined_constant | defined_functor ~ "(" ~ tff_arguments ~ ")" | nxf_atom | txf_let }
+
+tff_defined_infix = { "(" ~ tff_unitary_term ~ defined_infix_pred ~ tff_unitary_term ~ ")" }
+
+tff_system_atomic = { system_constant | system_functor ~ "(" ~ tff_arguments ~ ")" }
+
+txf_let = { "$let(" ~ txf_let_types ~ "," ~ txf_let_defns ~ "," ~ tff_term ~ ")" }
+
+txf_let_types = { tff_atom_typing | "[" ~ tff_atom_typing_list ~ "]" }
+
+tff_atom_typing_list = { tff_atom_typing | tff_atom_typing ~ "," ~ tff_atom_typing_list }
+
+txf_let_defns = { txf_let_defn | "[" ~ txf_let_defn_list ~ "]" }
+
+txf_let_defn = { txf_let_LHS ~ assignment ~ tff_term }
+
+txf_let_LHS = { tff_plain_atomic | txf_tuple }
+
+txf_let_defn_list = { txf_let_defn | txf_let_defn ~ "," ~ txf_let_defn_list }
+
+nxf_atom = { nxf_long_connective ~ "@" ~ "(" ~ tff_arguments ~ ")" }
+
+tff_term = { tff_logic_formula | defined_term | txf_tuple }
+
+tff_unitary_term = { tff_atomic_formula | defined_term | txf_tuple | variable | "(" ~ tff_logic_formula ~ ")" }
+
+txf_tuple = { "[]" | "[" ~ tff_arguments ~ "]" }
+
+tff_arguments = { tff_term | tff_term ~ "," ~ tff_arguments }
+
+tff_atom_typing = { untyped_atom ~ ":" ~ tff_top_level_type | "(" ~ tff_atom_typing ~ ")" }
+
+tff_top_level_type = { tff_atomic_type | tff_non_atomic_type }
+
+tff_non_atomic_type = { tff_mapping_type | tf1_quantified_type | "(" ~ tff_non_atomic_type ~ ")" }
+
+tf1_quantified_type = { "!>" ~ "[" ~ tff_variable_list ~ "]" ~ ":" ~ tff_monotype }
+
+tff_monotype = { tff_atomic_type | "(" ~ tff_mapping_type ~ ")" | tf1_quantified_type }
+
+tff_unitary_type = { tff_atomic_type | "(" ~ tff_xprod_type ~ ")" }
+
+tff_atomic_type = { type_constant | defined_type | variable | type_functor ~ "(" ~ tff_type_arguments ~ ")" | "(" ~ tff_atomic_type ~ ")" | txf_tuple_type }
+
+tff_type_arguments = { tff_atomic_type | tff_atomic_type ~ "," ~ tff_type_arguments }
+
+tff_mapping_type = { tff_unitary_type ~ arrow ~ tff_atomic_type }
+
+tff_xprod_type = { tff_unitary_type ~ (star ~ tff_atomic_type)+ }
+
+txf_tuple_type = { "[" ~ tff_type_list ~ "]" }
+
+tff_type_list = { tff_top_level_type | tff_top_level_type ~ "," ~ tff_type_list }
+
+tff_subtype = { untyped_atom ~ subtype_sign ~ atom }
+
+txf_definition = { tff_atomic_formula ~ identical ~ tff_term }
+
+txf_sequent = { txf_tuple ~ gentzen_arrow ~ txf_tuple }
+
+nhf_long_connective = { "{" ~ ntf_connective_name ~ "}" | "{" ~ ntf_connective_name ~ "(" ~ nhf_parameter_list ~ ")}" }
+
+nhf_parameter_list = { nhf_parameter | nhf_parameter ~ "," ~ nhf_parameter_list }
+
+nhf_parameter = { ntf_index | nhf_key_pair }
+
+nhf_key_pair = { thf_definition }
+
+nxf_long_connective = { "{" ~ ntf_connective_name ~ "}" | "{" ~ ntf_connective_name ~ "(" ~ nxf_parameter_list ~ ")}" }
+
+nxf_parameter_list = { nxf_parameter | nxf_parameter ~ "," ~ nxf_parameter_list }
+
+nxf_parameter = { ntf_index | nxf_key_pair }
+
+nxf_key_pair = { txf_definition }
+
+ntf_connective_name = { def_or_sys_constant }
+
+ntf_index = { hash ~ tff_unitary_term }
+
+ntf_short_connective = { "[.]" | less_sign ~ "." ~ arrow | "{.}" | "(.)" }
+
+tcf_formula = { tcf_logic_formula | tff_atom_typing }
+
+tcf_logic_formula = { tcf_quantified_formula | cnf_formula }
+
+tcf_quantified_formula = { "!" ~ "[" ~ tff_variable_list ~ "]" ~ ":" ~ tcf_logic_formula }
+
+fof_formula = { fof_logic_formula | fof_sequent }
+
+fof_logic_formula = { fof_binary_formula | fof_unary_formula | fof_unitary_formula }
+
+fof_binary_formula = { fof_binary_nonassoc | fof_binary_assoc }
+
+fof_binary_nonassoc = { fof_unit_formula ~ nonassoc_connective ~ fof_unit_formula }
+
+fof_binary_assoc = { fof_or_formula | fof_and_formula }
+
+fof_or_formula = { fof_unit_formula ~ (vline ~ fof_unit_formula)+ }
+
+fof_and_formula = { fof_unit_formula ~ ("&" ~ fof_unit_formula)+ }
+
+fof_unary_formula = { unary_connective ~ fof_unit_formula | fof_infix_unary }
+
+fof_infix_unary = { fof_term ~ infix_inequality ~ fof_term }
+
+fof_unit_formula = { fof_unitary_formula | fof_unary_formula }
+
+fof_unitary_formula = { fof_quantified_formula | fof_atomic_formula | "(" ~ fof_logic_formula ~ ")" }
+
+fof_quantified_formula = { fof_quantifier ~ "[" ~ fof_variable_list ~ "]" ~ ":" ~ fof_unit_formula }
+
+fof_variable_list = { variable | variable ~ "," ~ fof_variable_list }
+
+fof_atomic_formula = { fof_plain_atomic_formula | fof_defined_atomic_formula | fof_system_atomic_formula }
+
+fof_plain_atomic_formula = { fof_plain_term }
+
+fof_defined_atomic_formula = { fof_defined_plain_formula | fof_defined_infix_formula }
+
+fof_defined_plain_formula = { fof_defined_plain_term }
+
+fof_defined_infix_formula = { fof_term ~ defined_infix_pred ~ fof_term }
+
+fof_system_atomic_formula = { fof_system_term }
+
+fof_plain_term = { constant | functor ~ "(" ~ fof_arguments ~ ")" }
+
+fof_defined_term = { defined_term | fof_defined_atomic_term }
+
+fof_defined_atomic_term = { fof_defined_plain_term }
+
+fof_defined_plain_term = { defined_constant | defined_functor ~ "(" ~ fof_arguments ~ ")" }
+
+fof_system_term = { system_constant | system_functor ~ "(" ~ fof_arguments ~ ")" }
+
+fof_arguments = { fof_term | fof_term ~ "," ~ fof_arguments }
+
+fof_term = { fof_function_term | variable }
+
+fof_function_term = { fof_plain_term | fof_defined_term | fof_system_term }
+
+fof_sequent = { fof_formula_tuple ~ gentzen_arrow ~ fof_formula_tuple | "(" ~ fof_sequent ~ ")" }
+
+fof_formula_tuple = { "{}" | "{" ~ fof_formula_tuple_list ~ "}" }
+
+fof_formula_tuple_list = { fof_logic_formula | fof_logic_formula ~ "," ~ fof_formula_tuple_list }
+
+cnf_formula = { cnf_disjunction | "(" ~ cnf_formula ~ ")" }
+
+cnf_disjunction = { cnf_literal ~ (vline ~ cnf_literal)* }
+
+cnf_literal = { fof_atomic_formula | "~" ~ fof_atomic_formula | "~" ~ "(" ~ fof_atomic_formula ~ ")" | fof_infix_unary }
+
+thf_quantifier = { fof_quantifier | th0_quantifier | th1_quantifier }
+
+thf_unary_connective = { unary_connective | ntf_short_connective }
+
+th1_quantifier = { "!>" | "?*" }
+
+th0_quantifier = { "^" | "@+" | "@-" }
+
+subtype_sign = { "<<" }
+
+tff_unary_connective = { unary_connective | ntf_short_connective }
+
+fof_quantifier = { "!" | "?" }
+
+nonassoc_connective = { "<=>" | "=>" | "<=" | "<~>" | "~" ~ vline | "~&" }
+
+assoc_connective = { vline | "&" }
+
+unary_connective = { "~" }
+
+gentzen_arrow = { "-->" }
+
+assignment = { ":=" }
+
+identical = { "==" }
+
+type_constant = { type_functor }
+
+type_functor = { atomic_word }
+
+defined_type = { atomic_defined_word }
+
+atom = { untyped_atom | defined_constant }
+
+untyped_atom = { constant | system_constant }
+
+defined_infix_pred = { infix_equality }
+
+infix_equality = { "=" }
+
+infix_inequality = { "!=" }
+
+constant = { functor }
+
+functor = { atomic_word }
+
+defined_constant = { defined_functor }
+
+defined_functor = { atomic_defined_word }
+
+system_constant = { system_functor }
+
+system_functor = { atomic_system_word }
+
+def_or_sys_constant = { defined_constant | system_constant }
+
+th1_defined_term = { "!!" | "??" | "@@+" | "@@-" | "@=" }
+
+defined_term = { number | distinct_object }
+
+variable = { upper_word }
+
+source = { general_term }
+
+optional_info = { ("," ~ useful_info)? }
+
+useful_info = { general_list }
+
+include = { "include(" ~ file_name ~ include_optionals ~ ")." }
+
+include_optionals = { ("," ~ formula_selection | "," ~ formula_selection ~ "," ~ space_name)? }
+
+formula_selection = { "[" ~ name_list ~ "]" | star }
+
+name_list = { name | name ~ "," ~ name_list }
+
+space_name = { name }
+
+general_term = { general_data | general_data ~ ":" ~ general_term | general_list }
+
+general_data = { atomic_word | general_function | variable | number | distinct_object | formula_data }
+
+general_function = { atomic_word ~ "(" ~ general_terms ~ ")" }
+
+formula_data = { "$thf(" ~ thf_formula ~ ")" | "$tff(" ~ tff_formula ~ ")" | "$fof(" ~ fof_formula ~ ")" | "$cnf(" ~ cnf_formula ~ ")" | "$fot(" ~ fof_term ~ ")" }
+
+general_list = { "[]" | "[" ~ general_terms ~ "]" }
+
+general_terms = { general_term | general_term ~ "," ~ general_terms }
+
+name = { atomic_word | integer }
+
+atomic_word = { lower_word | single_quoted }
+
+atomic_defined_word = { dollar_word }
+
+atomic_system_word = { dollar_dollar_word }
+
+number = { integer | rational | real }
+
+file_name = { single_quoted }
+
+comment = { comment_line | comment_block }
+
+comment_line = { "%" ~ printable_char * }
+
+comment_block = { ( "/" ) ~ ( "*" ) ~ not_star_slash ~ ( "*" ) ~ ( "*" ) * ~ ( "/" ) }
+
+not_star_slash = { ( (&!"*" ~ ASCII) * ~ ( "*" ) ~ ( "*" ) * ~ (!"/*") ) * ~ (&!"*" ~ ASCII) * }
+
+single_quoted = { single_quote ~ sq_char ~ sq_char * ~ single_quote }
+
+distinct_object = { double_quote ~ do_char * ~ double_quote }
+
+dollar_word = { dollar ~ alpha_numeric * }
+
+dollar_dollar_word = { dollar ~ dollar ~ alpha_numeric * }
+
+upper_word = { upper_alpha ~ alpha_numeric * }
+
+lower_word = { lower_alpha ~ alpha_numeric * }
+
+vline = { "|" }
+
+star = { "*" }
+
+plus = { "+" }
+
+arrow = { ">" }
+
+less_sign = { "<" }
+
+hash = { "#" }
+
+real = { ( signed_real | unsigned_real ) }
+
+signed_real = { sign ~ unsigned_real }
+
+unsigned_real = { ( decimal_fraction | decimal_exponent ) }
+
+rational = { ( signed_rational | unsigned_rational ) }
+
+signed_rational = { sign ~ unsigned_rational }
+
+unsigned_rational = { decimal ~ slash ~ positive_decimal }
+
+integer = { ( signed_integer | unsigned_integer ) }
+
+signed_integer = { sign ~ unsigned_integer }
+
+unsigned_integer = { decimal }
+
+decimal = { ( zero_numeric | positive_decimal ) }
+
+positive_decimal = { non_zero_numeric ~ numeric * }
+
+decimal_exponent = { ( decimal | decimal_fraction ) ~ exponent ~ exp_integer }
+
+decimal_fraction = { decimal ~ dot_decimal }
+
+dot_decimal = { dot ~ numeric ~ numeric * }
+
+exp_integer = { ( signed_exp_integer | unsigned_exp_integer ) }
+
+signed_exp_integer = { sign ~ unsigned_exp_integer }
+
+unsigned_exp_integer = { numeric ~ numeric * }
+
+slash = { slash_char }
+
+slosh = { slosh_char }
+
+percentage_sign = { ( "%" ) }
+
+double_quote = { ( "\"" ) }
+
+do_char = { ( '\x20'..'\x21' | '\x23'..'\x5B' | '\x5D'..'\x7E' | ( "\\" ) ~ ( "\"" | "\\" ) ) }
+
+single_quote = { ( "'" ) }
+
+sq_char = { ( '\x20'..'\x26' | '\x28'..'\x5B' | '\x5D'..'\x7E' | ( "\\" ) ~ ( "'" | "\\" ) ) }
+
+sign = { ( "+" | "-" ) }
+
+dot = { ( "." ) }
+
+exponent = { ( "E" | "e" ) }
+
+slash_char = { ( "/" ) }
+
+slosh_char = { ( "\\" ) }
+
+zero_numeric = { ( "0" ) }
+
+non_zero_numeric = { '1'..'9' }
+
+numeric = { '0'..'9' }
+
+lower_alpha = { 'a'..'z' }
+
+upper_alpha = { 'A'..'Z' }
+
+alpha_numeric = { ( lower_alpha | upper_alpha | numeric | ( "_" ) ) }
+
+dollar = { ( "$" ) }
+
+printable_char = { ASCII }
+
+viewable_char = { ( "." | "\n" ) }
