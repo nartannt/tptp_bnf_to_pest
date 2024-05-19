@@ -1,11 +1,11 @@
 
-This project aims to generate a .pest file from the official TPTP bnf specifications
+This project aims to generate a .pest file from the official TPTP bnf specifications (https://tptp.org/TPTP/SyntaxBNF.html)
 
 It directly prints out the pest grammar. To use it change the filename in the main.rs file to wherever your bnf file is stored.
 
 A handful of caveats:
-   - I have been unable to find a precise semantic of grammar, and have consequently relied on educated guesswork
-   - There are likely a couple of bugs I haven't caught
+   - I have been unable to find a precise semantic of grammar, and relied on guesswork for some of the specifics
+   - There are likely a couple of bugs I haven't caught, the grammar I wrote is not very robust
    - Additionnal modifications must be made to the generated pest file
       * remove the "null" rule and replace all instances of "null" with the question mark and appropriate parenthesing
         haven't found a way to work around this cleanly (maybe instead have a null = {&ANY} rule?)
