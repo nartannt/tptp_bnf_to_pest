@@ -5,6 +5,8 @@ It directly prints out the pest grammar. To use it change the filename in the ma
 
 A handful of caveats:
    - The program completely ignores semantic rules
+   - Doesn't actually work, many "or" rules need to be reordered for rules share prefixes
+   - The resulting .pest file even once reordered will be extremely slow because rules which share prefixes require theses prefixes to be parsed multiple times
    - I have been unable to find a precise semantic of grammar, and relied on guesswork for some of the specifics
    - There are likely a couple of bugs I haven't caught, the grammar I wrote is not very robust
    - Additionnal modifications must be made to the generated pest file
@@ -21,4 +23,4 @@ A handful of caveats:
 
 With this in mind, the recommended use of this project is to generate the pest file using this code and then manually modify it.
 
-The tptp.pest file has been generated and subsequently modified by hand, it successfully parsed COM001_10.
+The tptp.pest file has been generated and subsequently modified by hand, it successfully parsed COM001_10.p
